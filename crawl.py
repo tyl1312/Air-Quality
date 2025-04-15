@@ -22,6 +22,11 @@ tram = ["hanoi/hai-batrung/ha-noi:-dai-hoc-bách-khoa-cong-parabol-duong-giai-p
 options = Options()
 options.add_argument('--headless')
 options.add_argument('--disable-gpu')
+options.add_argument('--lang=vi-VN')
+prefs = {
+    "intl.accept_languages": "vi-VN,vi",
+}
+options.add_experimental_option("prefs", prefs)
 
 service = Service(ChromeDriverManager().install())
 driver = webdriver.Chrome(service=service, options=options)
