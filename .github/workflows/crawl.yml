@@ -44,15 +44,8 @@ jobs:
       run: |
         git config --global user.name "github-actions[bot]"
         git config --global user.email "github-actions[bot]@users.noreply.github.com"
-
-        # Check if air_quality.csv changed
-        if git diff --quiet air_quality.csv; then
-          echo "No changes in air_quality.csv, skipping commit."
-        else
-          git add air_quality.csv
-          git commit -m "Update air_quality.csv [CI skip]"
-          git push
-        fi
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        git add air_quality.csv
+        git commit -m "Update CSV from crawler" || echo "No changes to commit"
+        git push
+      
 
