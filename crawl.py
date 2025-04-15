@@ -66,6 +66,7 @@ try:
                 if timestamp_text == "Bây giờ":
                     aqi = item.find_element(By.CLASS_NAME, 'aqi-chip').text.strip()
                     temp = item.find_element(By.CLASS_NAME, 'temperature').text.strip().replace("°", "")
+                    print(temp)
                     humidity = item.find_element(By.CLASS_NAME, 'humidity-value').text.strip().replace("%", "")
                     wind_speed = item.find_element(By.CLASS_NAME, 'wind-speed').text.strip()
                     
