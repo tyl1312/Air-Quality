@@ -20,7 +20,7 @@ tram = ["hanoi/hai-batrung/ha-noi:-dai-hoc-bách-khoa-cong-parabol-duong-giai-p
 
 #Set up headless browser
 options = Options()
-#options.add_argument('--headless')
+options.add_argument('--headless')
 options.add_argument('--disable-gpu')
 
 service = Service(ChromeDriverManager().install())
