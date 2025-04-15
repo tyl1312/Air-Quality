@@ -4,7 +4,7 @@ import time
 import json
 from datetime import datetime
 from selenium import webdriver
-from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 
@@ -22,7 +22,7 @@ options = Options()
 options.add_argument('--headless')
 options.add_argument('--disable-gpu')
 
-driver = webdriver.Chrome(service=Service(), options=options)
+driver = webdriver.Chrome(ChromeDriverManager().install())
 
 try:
     for i in tram: 
