@@ -9,6 +9,15 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 
+def ensure_celsius(temp_str):
+    try:
+        temp = float(temp_str)
+        if temp > 60:  # Very likely Fahrenheit
+            temp = (temp - 32) * 5 / 9
+        return round(temp, 1)
+    except:
+        return "N/A"
+    
 tram = ["hanoi/hai-batrung/ha-noi:-dai-hoc-bách-khoa-cong-parabol-duong-giai-phong-kk",
         "hanoi/thanh-xuan/ha-noi:-cong-vien-ho-dieu-hoa-nhan-chinh-khuat-duy-tien-kk",
         "hanoi/hanoi/minh-khai-bac-tu-liem",
@@ -66,7 +75,7 @@ try:
                 if timestamp_text == "Bây giờ":
                     aqi = item.find_element(By.CLASS_NAME, 'aqi-chip').text.strip()
                     temp = item.find_element(By.CLASS_NAME, 'temperature').text.strip().replace("°", "")
-                    print(temp)
+                    temp = ensure_celsius(temp)
                     humidity = item.find_element(By.CLASS_NAME, 'humidity-value').text.strip().replace("%", "")
                     wind_speed = item.find_element(By.CLASS_NAME, 'wind-speed').text.strip()
                     
