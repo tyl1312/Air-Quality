@@ -14,7 +14,7 @@ def ensure_celsius(temp_str):
         temp = float(temp_str)
         if temp > 60:  # Very likely Fahrenheit
             temp = (temp - 32) * 5 / 9
-        return round(temp, 1)
+        return round(temp, 0)
     except:
         return "N/A"
     
