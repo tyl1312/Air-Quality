@@ -11,7 +11,7 @@ station_ids = ["a541573213daa760b799",
             "d2f6eded3f428aa9a7ae",
             "9c7b57505ca85fb23552",
             "714db8d74b1a20a6f242",
-            "5b7a86036a15c1ae2d8a894c",
+            "1a80166d2604bf3a9738",
             "0c9b4ab81d2d162834a4",
             "7298799d2147cbef007b",
             ]
@@ -26,7 +26,7 @@ for station_id in station_ids:
 
     # Extracting data
     current_time = datetime.now().replace(minute=0, second=0, microsecond=0).strftime("%Y-%m-%d %H:%M:%S")
-    station_name = data['name']
+    station_name = data.get("name")
     longitude = data.get("coordinates", {}).get("longitude")
     latitude = data.get("coordinates", {}).get("latitude")
 
