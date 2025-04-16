@@ -1,128 +1,65 @@
+import requests
 import csv
 import os
-import time
-import json
 from datetime import datetime
-from selenium import webdriver
-from webdriver_manager.chrome import ChromeDriverManager
-from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.common.by import By
-from selenium.webdriver.chrome.options import Options
 
-def ensure_celsius(temp_str):
-    try:
-        temp = float(temp_str)
-        if temp > 60:  # Very likely Fahrenheit
-            temp = (temp - 32) * 5 / 9
-        return int(round(temp))
-    except:
-        return "N/A"
-    
-tram = ["hanoi/hai-batrung/ha-noi:-dai-hoc-bách-khoa-cong-parabol-duong-giai-phong-kk",
-        "hanoi/thanh-xuan/ha-noi:-cong-vien-ho-dieu-hoa-nhan-chinh-khuat-duy-tien-kk",
-        "hanoi/hanoi/minh-khai-bac-tu-liem",
-        "tinh-ba-ria-vung-tau/vung-tau/vung-tau:-nga-tu-gieng-nuoc-tp-vung-tau-kk",
-        "tinh-hai-duong/hai-duong/hai-duong:-ubnd-tp-hai-duong-106-duong-tran-hung-dao-kk",
-        "tinh-thua-thien-hue/hue/thua-thien-hue:-83-duong-hung-vuong-kk",
-        "phu-tho/phu-tho/phu-tho:-duong-hung-vuong-tp-viet-tri-kk"
-]
+# URL to crawl
+station_ids = ["a541573213daa760b799",
+            "d8466ee31278e426dbd8",
+            "5949f20a303bcb0b4b081176",
+            "89b85e7d6002954e0f42",
+            "d2f6eded3f428aa9a7ae",
+            "9c7b57505ca85fb23552",
+            "714db8d74b1a20a6f242"
+            ]
 
-#Set up headless browser
-options = Options()
-options.add_argument('--headless')
-options.add_argument('--disable-gpu')
+for station_id in station_ids:
+    url = f"https://website-api.airvisual.com/v1/stations/{station_id}?units.temperature=celsius&units.distance=kilometer&units.pressure=millibar&units.system=metric&AQI=US&language=vi"
 
-service = Service(ChromeDriverManager().install())
-driver = webdriver.Chrome(service=service, options=options)
+    # Send GET request
+    response = requests.get(url)
+    data = response.json()
 
-try:
-    for i in tram: 
 
-        url = f"https://www.iqair.com/vi/vietnam/{i}"
-        driver.get(url)
-        time.sleep(10)
+    # Extracting data
+    current_time = datetime.now().replace(minute=0, second=0, microsecond=0).strftime("%Y-%m-%d %H:%M:%S")
+    station_name = data['name']
+    longitude = data.get("coordinates", {}).get("longitude")
+    latitude = data.get("coordinates", {}).get("latitude")
 
-        current_time = datetime.now().replace(minute=0, second=0, microsecond=0).strftime("%Y-%m-%d %H:%M:%S")
+    current = data.get("current", {})
+    aqi = current.get("aqi")
+    WHO_exposure = current.get("WHOExposure", {}).get("WHOExposure")
 
-        station_name = "Unknown"
-        scripts = driver.find_elements(By.XPATH, "//script[@type='application/ld+json']")
-        for script in scripts:
-            try:
-                json_text = script.get_attribute("innerHTML")
-                data = json.loads(json_text)
-                if isinstance(data, dict) and data.get("@type") == "BreadcrumbList":
-                    station_name = data["itemListElement"][-1]["name"]
-                    break
-            except Exception:
-                continue
+    # Extract pollutants
+    pollutants = {p["pollutantName"]: p["concentration"] for p in current.get("pollutants", [])}
+    pm25 = pollutants.get("pm25")
+    pm10 = pollutants.get("pm10")
+    o3 = pollutants.get("o3")
+    no2 = pollutants.get("no2")
+    so2 = pollutants.get("so2")
+    co = pollutants.get("co")
 
-        # --- Default values ---
-        aqi = temp = humidity = wind_speed = "N/A"
-        pollutant_data = {
-            "PM2.5": "N/A",
-            "PM10": "N/A",
-            "O3": "N/A",
-            "NO2": "N/A",
-            "SO2": "N/A",
-            "CO": "N/A"
-        }
+    #Extract weather condition
+    temperature = current.get("temperature")
+    condition = current.get("condition")
+    humidity = current.get("humidity")
+    pressure = current.get("pressure")
+    wind_speed = current.get("wind", {}).get("speed")
+    wind_direction = current.get("wind", {}).get("direction")
 
-        #Weather components
-        items = driver.find_elements(By.CSS_SELECTOR, 'hourly-forecast-item')
-        for item in items:
-            try:
-                timestamp_text = item.find_element(By.CLASS_NAME, 'timestamp').text.strip()
-                if timestamp_text == "Bây giờ":
-                    aqi = item.find_element(By.CLASS_NAME, 'aqi-chip').text.strip()
-                    temp = item.find_element(By.CLASS_NAME, 'temperature').text.strip().replace("°", "")
-                    temp = ensure_celsius(temp)
-                    humidity = item.find_element(By.CLASS_NAME, 'humidity-value').text.strip().replace("%", "")
-                    wind_speed = item.find_element(By.CLASS_NAME, 'wind-speed').text.strip()
-                    
-                    break
-            except Exception as e:
-                print("Error parsing forecast:", e)
+    filename = "air_quality.csv"
+    header = ["timestamp", "station_name", "longitude", "latitude", "aqi", "WHO_exposure",
+            "PM2.5 (µg/m³)", "PM10 (µg/m³)", "O3 (µg/m³)", "NO2 (µg/m³)", "SO2 (µg/m³)", "CO (µg/m³)",
+            "condition", "temperature (°)", "humidity (%)", "pressure", "wind_speed (km/h)", "wind_direction"]
 
-        #Pollutant components
-        pollutant_cards = driver.find_elements(By.CSS_SELECTOR, "air-pollutant-card")
-        for card in pollutant_cards:
-            try:
-                name = card.find_element(By.CLASS_NAME, "card-wrapper-info__title").text.upper()
-                value = card.find_element(By.CLASS_NAME, "measurement-wrapper__value").text.strip()
-                if "PM2.5" in name:
-                    pollutant_data["PM2.5"] = value
-                elif "PM10" in name:
-                    pollutant_data["PM10"] = value
-                elif "O₃" in name:
-                    pollutant_data["O3"] = value
-                elif "NO₂" in name:
-                    pollutant_data["NO2"] = value
-                elif "SO₂" in name:
-                    pollutant_data["SO2"] = value
-                elif "CO" in name:
-                    pollutant_data["CO"] = value
-            except Exception as e:
-                print("⚠️ Error parsing pollutant card:", e)
-
-        #Save file csv
-        filename = "air_quality.csv"
-        header = ["timestamp", "Địa chỉ", "AQI", "PM2.5", "PM10", "O3", "NO2", "SO2", "CO", "temperature", "humidity", "wind speed"]
-        row = [
-            current_time, station_name, aqi,
-            pollutant_data["PM2.5"],
-            pollutant_data["PM10"],
-            pollutant_data["O3"],
-            pollutant_data["NO2"],
-            pollutant_data["SO2"],
-            pollutant_data["CO"],
-            temp, humidity, wind_speed
-        ]
-
-        file_exists = os.path.isfile(filename)
-        with open(filename, "a", newline="", encoding="utf-8") as csvfile:
-            writer = csv.writer(csvfile)
-            if not file_exists:
-                writer.writerow(header)
-            writer.writerow(row)
-finally:
-    driver.quit()
+    # Create CSV file with header if not exist
+    file_exists = os.path.isfile(filename)
+    with open(filename, "a", newline="", encoding="utf-8") as csvfile:
+        writer = csv.writer(csvfile)
+        if not file_exists:
+            writer.writerow(header)
+        row = [current_time, station_name, longitude, latitude, aqi, WHO_exposure,
+                pm25, pm10, o3, no2, so2, co,
+                condition, temperature, humidity, pressure, wind_speed, wind_direction]
+        writer.writerow(row)
