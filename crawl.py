@@ -10,7 +10,10 @@ station_ids = ["a541573213daa760b799",
             "89b85e7d6002954e0f42",
             "d2f6eded3f428aa9a7ae",
             "9c7b57505ca85fb23552",
-            "714db8d74b1a20a6f242"
+            "714db8d74b1a20a6f242",
+            "5b7a86036a15c1ae2d8a894c",
+            "0c9b4ab81d2d162834a4",
+            "7298799d2147cbef007b",
             ]
 
 for station_id in station_ids:
