@@ -7,6 +7,11 @@ from datetime import datetime
 station_ids = ["a541573213daa760b799",
             "d8466ee31278e426dbd8",
             "5949f20a303bcb0b4b081176",
+            "5949f20a303bcb0b4b081177",
+            "67f734ca76cfe716990c3514",
+            "d01d6323f87da9a2a4b6"
+            "cc1f1486b2113535bb1e",
+            "67ca8ebd00c1ea609f6d8c1c",
             "89b85e7d6002954e0f42",
             "d2f6eded3f428aa9a7ae",
             "9c7b57505ca85fb23552",
